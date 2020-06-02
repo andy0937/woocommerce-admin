@@ -22,15 +22,17 @@ jest.mock( '../install-jetpack-cta', () => {
 		.mockImplementation( () => <div>mocked install jetpack cta</div> );
 } );
 
+import { useUserPreferences } from '@woocommerce/data';
+jest.mock( '@woocommerce/data' );
+
 describe( 'StatsOverview tracking', () => {
 	it( 'should record an event when a stat is toggled', () => {
+		useUserPreferences.mockReturnValue( {
+			updateUserPreferences: () => {},
+			hiddenStats: null,
+		} );
 		render(
-			<StatsOverview
-				userPrefs={ {
-					hiddenStats: null,
-				} }
-				updateCurrentUserData={ () => {} }
-			/>
+			<StatsOverview />
 		);
 
 		const ellipsisBtn = screen.getByRole( 'button', {
@@ -77,15 +79,14 @@ describe( 'StatsOverview tracking', () => {
 
 describe( 'StatsOverview toggle and persist stat preference', () => {
 	it( 'should update preferences', () => {
-		const updateCurrentUserData = jest.fn();
+		const updateUserPreferences = jest.fn();
+		useUserPreferences.mockReturnValue( {
+			updateUserPreferences,
+			hiddenStats: null,
+		} );
 
 		render(
-			<StatsOverview
-				userPrefs={ {
-					hiddenStats: null,
-				} }
-				updateCurrentUserData={ updateCurrentUserData }
-			/>
+			<StatsOverview />
 		);
 
 		const ellipsisBtn = screen.getByRole( 'button', {
@@ -97,7 +98,7 @@ describe( 'StatsOverview toggle and persist stat preference', () => {
 		} );
 		fireEvent.click( totalSalesBtn );
 
-		expect( updateCurrentUserData ).toHaveBeenCalledWith( {
+		expect( updateUserPreferences ).toHaveBeenCalledWith( {
 			homepage_stats: {
 				hiddenStats: [
 					'revenue/net_revenue',
@@ -111,13 +112,12 @@ describe( 'StatsOverview toggle and persist stat preference', () => {
 
 describe( 'StatsOverview rendering correct elements', () => {
 	it( 'should include a link to all the overview page', () => {
+		useUserPreferences.mockReturnValue( {
+			updateUserPreferences: () => {},
+			hiddenStats: null,
+		} );
 		render(
-			<StatsOverview
-				userPrefs={ {
-					hiddenStats: null,
-				} }
-				updateCurrentUserData={ () => {} }
-			/>
+			<StatsOverview />
 		);
 
 		const viewDetailedStatsLink = screen.getByText( 'View detailed stats' );
@@ -130,13 +130,12 @@ describe( 'StatsOverview rendering correct elements', () => {
 
 describe( 'StatsOverview period selection', () => {
 	it( 'should have Today selected by default', () => {
+		useUserPreferences.mockReturnValue( {
+			updateUserPreferences: () => {},
+			hiddenStats: null,
+		} );
 		render(
-			<StatsOverview
-				userPrefs={ {
-					hiddenStats: null,
-				} }
-				updateCurrentUserData={ () => {} }
-			/>
+			<StatsOverview />
 		);
 
 		const todayBtn = screen.getByRole( 'tab', { name: 'Today' } );
@@ -144,13 +143,12 @@ describe( 'StatsOverview period selection', () => {
 	} );
 
 	it( 'should select a new period', () => {
+		useUserPreferences.mockReturnValue( {
+			updateUserPreferences: () => {},
+			hiddenStats: null,
+		} );
 		render(
-			<StatsOverview
-				userPrefs={ {
-					hiddenStats: null,
-				} }
-				updateCurrentUserData={ () => {} }
-			/>
+			<StatsOverview />
 		);
 
 		fireEvent.click( screen.getByRole( 'tab', { name: 'Month to date' } ) );
