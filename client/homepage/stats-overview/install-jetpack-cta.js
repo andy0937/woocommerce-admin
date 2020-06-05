@@ -5,7 +5,6 @@ import { __ } from '@wordpress/i18n';
 import { compose } from '@wordpress/compose';
 import { Button } from '@wordpress/components';
 import { useState } from 'react';
-import { withDispatch } from '@wordpress/data';
 import PropTypes from 'prop-types';
 
 /**
@@ -13,7 +12,7 @@ import PropTypes from 'prop-types';
  */
 import { H, Plugins } from '@woocommerce/components';
 import { getAdminLink, getSetting } from '@woocommerce/wc-admin-settings';
-import { PLUGINS_STORE_NAME } from '@woocommerce/data';
+import { PLUGINS_STORE_NAME, useUserPreferences } from '@woocommerce/data';
 
 /**
  * Internal dependencies
@@ -22,16 +21,12 @@ import withSelect from 'wc-api/with-select';
 import Connect from 'dashboard/components/connect';
 import { recordEvent } from 'lib/tracks';
 
-function InstallJetpackCta( props ) {
-	const {
-		isJetpackConnected,
-		getCurrentUserData,
-		updateCurrentUserData,
-	} = props;
+function InstallJetpackCta( { isJetpackConnected } ) {
+	const { updateUserPreferences, ...userPrefs } = useUserPreferences();
 	const [ isInstalling, setIsInstalling ] = useState( false );
 	const [ isConnecting, setIsConnecting ] = useState( false );
 	const [ isDismissed, setIsDismissed ] = useState(
-		( getCurrentUserData().homepage_stats || {} ).installJetpackDismissed
+		( userPrefs.homepage_stats || {} ).installJetpackDismissed
 	);
 	const plugins = getSetting( 'plugins', {
 		installedPlugins: [],
@@ -50,11 +45,11 @@ function InstallJetpackCta( props ) {
 			return;
 		}
 
-		const homepageStats = getCurrentUserData().homepage_stats || {};
+		const homepageStats = userPrefs.homepage_stats || {};
 
 		homepageStats.installJetpackDismissed = true;
 
-		updateCurrentUserData( { homepage_stats: homepageStats } );
+		updateUserPreferences( { homepage_stats: homepageStats } );
 
 		setIsDismissed( true );
 		recordEvent( 'statsoverview_dismiss_install_jetpack' );
@@ -127,31 +122,14 @@ InstallJetpackCta.propTypes = {
 	 * Is the Jetpack plugin connected.
 	 */
 	isJetpackConnected: PropTypes.bool.isRequired,
-	/**
-	 * A method to get user meta.
-	 */
-	getCurrentUserData: PropTypes.func.isRequired,
-	/**
-	 * A method to update user meta.
-	 */
-	updateCurrentUserData: PropTypes.func.isRequired,
 };
 
 export default compose(
 	withSelect( ( select ) => {
 		const { isJetpackConnected } = select( PLUGINS_STORE_NAME );
-		const { getCurrentUserData } = select( 'wc-api' );
 
 		return {
 			isJetpackConnected: isJetpackConnected(),
-			getCurrentUserData,
-		};
-	} ),
-	withDispatch( ( dispatch ) => {
-		const { updateCurrentUserData } = dispatch( 'wc-api' );
-
-		return {
-			updateCurrentUserData,
 		};
 	} )
 )( InstallJetpackCta );
